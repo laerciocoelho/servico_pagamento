@@ -1,0 +1,43 @@
+name: N1 - Execução Manual
+
+# ─── GATILHOS ────────────────────────────────────────────────────────────────
+on:
+  # Execução agendada — toda segunda-feira às 08:00 UTC
+  schedule:
+    - cron: "0 8 * * 1"
+
+# ─── JOBS ────────────────────────────────────────────────────────────────────
+jobs:
+  testes:
+    name: Executar Testes e Gerar Relatório
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Faz checkout do código
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      # 2. Configura o Node.js
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      # 3. Instala as dependências
+      - name: Instalar dependências
+        run: npm ci
+
+      # 4. Executa os testes e gera o relatório mochawesome
+      - name: Executar testes
+        run: npm test
+
+      # 5. Publica o relatório como artifact da pipeline
+      #    (disponível para download por 30 dias)
+      - name: Publicar relatório de testes
+        if: always()   # roda mesmo se os testes falharem
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-mochawesome
+          path: mochawesome-report/
+          retention-days: 30
